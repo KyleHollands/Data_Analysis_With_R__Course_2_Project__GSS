@@ -1,0 +1,205 @@
+---
+title: "Statistical inference with the GSS data"
+output: 
+  html_document: 
+    fig_height: 4
+    highlight: pygments
+    theme: spacelab
+---
+
+## Setup
+
+### Load packages
+
+```{r load-packages, message = FALSE}
+#devtools::install_github("haleyjeppson/ggmosaic")
+#install.packages('vcd')
+#install.packages('pastecs')
+
+library(ggplot2)
+library(dplyr)
+library(statsr)
+library(readr)
+library(ggmosaic)
+library('vcd')
+library(pastecs)
+```
+
+### Load data
+
+Make sure your data and R Markdown files are in the same directory. When loaded
+your data file will be called `gss`. Delete this note when before you submit 
+your work. 
+
+```{r load-data}
+load("gss.Rdata")
+```
+
+* * *
+
+## Part 1: Data
+
+### How are the observations in the sample collected?
+According to the official GSS website, the GSS is a "nationally representative" survey of adults in the United States. 
+It utilizes an "area probability design that randomly selects respondents in households across the United States."
+
+Due to this, it's safe to assume that the data collected is representative of the population of adults at large. However, it's likely that due to the nature of data collection, causal connections cannot be inferred, but the results can be generalized.
+
+* * *
+
+## Part 2: Research question
+
+### Investigating the data
+
+#### Potentially interesting variables to investigate further
+1. Religiosity (relig) and Education (degree). Relationship between level of education and religious affiliation?
+2. Religiosity (relig) and Political Party (partyid). Relationship between religiosity and political party?
+3. Religiosity (relig), Political Party (partyid) and Education level (degree).
+
+### Analysis #1 - Religion and Party Affiliation (Chi-Square Independence Test)
+
+Does there appear to be a relationship between religiosity and political party association?
+
+The parties contained in this analysis are Democrat, Independent and Republican
+and Other.
+
+The data analyzed is from the General Social Survey, a nationally representative 
+survey of adults in the United States.
+
+For the purposes of this analysis, anyone affiliated with a religion is considered
+religious. Those that are nearly or strongly leaning toward a particular political
+party will be considered associated with that party.
+
+```{r}
+#### Investigate the dataset
+
+#head(gss)
+#colnames(gss)
+#names(gss)
+#str(gss)
+#glimpse(gss)
+```
+
+* * *
+
+## Part 3: Exploratory data analysis
+
+### Analysis #1 - Religiosity and Party Affiliation (Chi-Square Independence Test)
+
+#### Initial Analysis and Cleaning
+```{r}
+##### Keep specific columns for analysis.
+trimmed_gss <- gss %>%
+  select(c(relig, partyid))
+
+##### Check for N/A's.
+sapply(trimmed_gss, function(x) sum(is.na(x)))
+
+##### Remove rows with N/A' (for this analysis, it was acceptable.)
+trimmed_gss <- na.omit(trimmed_gss)
+
+##### Recode data for easier analysis.
+##### Combine religion and party affiliation values.
+trimmed_gss <- trimmed_gss %>% mutate(relig=recode(relig, 'None'='Not Religious', .default="Religious"),
+              partyid=recode(partyid, 'Strong Democrat'='Democrat'),
+              partyid=recode(partyid, 'Not Str Democrat'='Democrat'),
+              partyid=recode(partyid, 'Ind,Near Dem'='Democrat'),
+              partyid=recode(partyid, 'Ind,Near Rep'='Republican'),
+              partyid=recode(partyid, 'Not Str Republican'='Republican'),
+              partyid=recode(partyid, 'Strong Republican'='Republican'),
+              partyid=recode(partyid, 'Other Party'='Other'))
+
+##### Rename column headers.
+colnames(trimmed_gss) <- c("Religiosity","Political Party")
+
+##### Create contingency tables
+(partyid_relig_n <- (table(trimmed_gss$Religiosity,
+                                   trimmed_gss$'Political Party')))
+
+(partyid_relig_prop <- (prop.table(table(trimmed_gss$Religiosity,
+                                   trimmed_gss$'Political Party'))))
+
+##### Export contingency table and trimmed data for external Chi-Sq Test of Independence.
+write.csv(partyid_relig_n, "party_religion.csv", row.names = TRUE)
+```
+
+#### Plots
+
+##### Mosaic Plot with Residuals
+The following plot shows the the association between Political Party affiliation
+and religiosity. The data indicate that Democrats, Independents and Other see a
+higher proportion of Non-Religious members, in contrast to Republicans which see
+the opposite. Based on this, we can determine that political party and religiosity
+are dependent on one another, to some extent.
+
+The standardized residuals indicate the difference between the observed and
+expected values.
+```{r}
+mosaicplot(partyid_relig_n, main='Religiosity by Political Party', 
+           col='steelblue', 
+           xlab = "Religiosity", 
+           ylab="Political Party Affiliation", 
+           shade = TRUE,
+           off = 3)
+```
+
+#### Summary Statistics
+```{r}
+#### Contingency Tables
+(partyid_relig_prop <- (addmargins(table(trimmed_gss$Religiosity,
+                                   trimmed_gss$'Political Party'))))
+(partyid_relig_prop <- (prop.table(addmargins(table(trimmed_gss$Religiosity,
+                                   trimmed_gss$'Political Party')))))
+#### Summary of the data
+summary(trimmed_gss)
+```
+
+### Analysis #2
+
+* * *
+
+## Part 4: Inference
+
+### Analysis #1 - Religion and Party Affiliation (Chi-Square Independence Test
+
+#### Hypotheses
+H0 (nothing is going on) Religion and Party affiliation are independent.
+Religiosity does not vary by Political Party.
+
+HA (something is going on) Religion and party affiliation are dependent.
+Religiosity does vary by Political Party.
+
+#### Evaluating the Hypothesis
+1. Quantify how different the observed counts are from the expected counts.
+2. Significant deviations from what is expected based on sampling variation (chance) alone
+provide strong evidence for the alternative hypothesis.
+
+### Conditions for the Chi-Square Test of Independence
+#### Independence:
+1. Sampled observations are independent.
+2. n < 10% of the population if sampling without replacement.
+3. Each case only contributes to one cell in the table.
+
+#### Sample Size:
+1. Each cell must have at least 5 expected cases.
+
+### Test the hypothesis 
+What is the overall religiosity in the sample?
+
+```{r}
+50481/55703
+```
+
+Test the hypothesis that religiosity and political party affiliation are 
+associated at the 5% significance level.
+
+```{r}
+pchisq(970.29, 3, lower.tail = FALSE)
+```
+
+The p_value of 5.012349e-210 is less than the 0.05 significance level. Therefore,
+we reject the null hypothesis in favour of the alternative; there is sufficient
+evidence indicating there is an association between Political Party affiliation and
+Religiosity.
+
+### Analysis #2
