@@ -17,6 +17,8 @@ output:
 #install.packages('vcd')
 #install.packages('pastecs')
 #install.packages(c("ggplot2", "ggpubr", "tidyverse", "broom", "AICcmodavg"))
+#install.packages('tinytex')
+#tinytex::install_tinytex()
 
 library(ggplot2)
 library(dplyr)
