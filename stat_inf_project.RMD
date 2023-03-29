@@ -1,15 +1,14 @@
 ---
 title: "Statistical inference with the GSS data"
 output:
-  pdf_document: default
   html_document:
     fig_height: 4
     highlight: pygments
     theme: spacelab
+  pdf_document: default
 ---
 
 ## Setup
-
 ### Load packages
 
 ```{r load-packages, message = FALSE}
@@ -33,6 +32,7 @@ library(tidyverse)
 library(broom)
 library(AICcmodavg)
 library(car)
+library(plyr)
 ```
 
 ### Load data
@@ -62,6 +62,8 @@ Due to this, it's safe to assume that the data collected is representative of th
 3. Religiosity (relig), Political Party (partyid) and Education level (degree).
 4. Is level of education (degree) and family income (coninc) associated? ***
 5. News and overall happiness.
+6. What is the average # of Children adults have.
+7. What is the average age of adults in the US?
 
 ```{r}
 #### Investigate the dataset
@@ -133,8 +135,6 @@ colnames(trimmed_gss_analysis_one) <- c("Religiosity","Political Party")
 
 ##### Export contingency table and trimmed data for external Chi-Sq Test of Independence in Excel.
 write.csv(partyid_relig_n, "party_religion.csv", row.names = TRUE)
-
-#trimmed_gss_analysis_one
 ```
 
 #### Plots
@@ -195,20 +195,20 @@ Religiosity does vary by Political Party.
 
 ##### Independence:
 1. Sampled observations are independent.
-- Random sampling was employed for the survey.
+  - Random sampling was employed for the survey.
 
 2. n < 10% of the population if sampling without replacement.
-- Observations are less than 10% of the population.
+  - Observations are less than 10% of the population.
 
 3. Each case only contributes to one cell in the table.
-- It is safe to assume that each individual surveyed reported once, although it's 
+  - It is safe to assume that each individual surveyed reported once, although it's 
 not impossible someone took part more than once, and therefore is part of multiple
 cells. For the sake of this analysis, we can assume that each case has only 
 contributed to one cell.
 
 ##### Sample Size:
 1. Each cell must have at least 5 expected cases.
-- True.
+  - True.
 
 #### Test the hypothesis 
 What is the overall religiosity in the sample?
@@ -218,8 +218,8 @@ What is the overall religiosity in the sample?
 Test the hypothesis that religiosity and political party affiliation are 
 associated at the 5% significance level.
 
-x^2 =	970.29
-df = 3
+  - x^2 =	970.29
+  - df = 3
 
 ```{r}
 (chiSq <- pchisq(970.29, 3, lower.tail = FALSE))
@@ -307,12 +307,12 @@ ggplot(trimmed_gss_analysis_two) +
 Does there appear to be a relationship between the level of respondents education
 and their household income?
 
-H0: The average family income is the same across all degrees of education. (u1 = u2 = u3 = u4 = u5)
-HA: The average family income differs between at least one pair of degrees of education.
+  - H0: The average family income is the same across all degrees of education. (u1 = u2 = u3 = u4 = u5)
+  - HA: The average family income differs between at least one pair of degrees of education.
 
 #### Evaluating the Hypothesis
 
-#### Conditions for the ANOVA Test
+##### Conditions for the ANOVA Test
 
 ```{r}
 res_aov <- aov(Family_Income ~ Degree,
@@ -320,41 +320,37 @@ res_aov <- aov(Family_Income ~ Degree,
 )
 ```
 
-##### Independence
-within: sampled observations must be independent of each other
-* random sample / assignment
-* each nj less than 10% of respective population
-* always important, but sometimes difficult to check
-
-- Respondents were sampled randomly as part of the survey, therefore, it is safe to 
+###### Independence
+Within: sampled observations must be independent of each other
+1. Random sample / assignment
+2. Each nj less than 10% of respective population
+3. Always important, but sometimes difficult to check
+  - Respondents were sampled randomly as part of the survey, therefore, it is safe to 
 assume that the observations are independent of one another.
-- The observations are less than 10% of the respective populations.
+  - The observations are less than 10% of the respective populations.
 
-between: groups must be independent of each other
-* carefully consider whether the groups may be dependent
-
-- Random sampling was employed, so it's safe to assume that each observation is
+Between: groups must be independent of each other
+1. Carefully consider whether the groups may be dependent
+  - Random sampling was employed, so it's safe to assume that each observation is
 independent, and therefore each group is also independent of one another as well
 as each observation is contained within one cell.
 
-##### Approximately Normal
-* distribution of response variable within each group should be 
+###### Approximately Normal
+1. Distribution of response variable within each group should be 
 approximately normal
-* especially important when sample sizes are small
-
-- Although there is skew in the data, the sample size is very large, therefore
+2. Especially important when sample sizes are small
+  - Although there is skew in the data, the sample size is very large, therefore
 this shouldn't be an issue.
 
 ```{r}
 hist(res_aov$residuals)
 ```
 
-##### Constant Variance
+###### Constant Variance
 
-* variability should be consistent across groups: homoscedastic groups
-* especially important when sample sizes differ between groups
-
-- Variance does not appear to be constant among all groups, therefore an 
+1. Variability should be consistent across groups: homoscedastic groups
+2. Especially important when sample sizes differ between groups
+  - Variance does not appear to be constant among all groups, therefore an 
 alternative ANOVA test is required.
 
 ```{r}
@@ -373,9 +369,9 @@ How much variability is attributed to the explanatory variable? (Education)
 
 ```{r}
 1.08127E+13/6.53791E+13
-```
-Approximately 16% of variability is due to the explanatory variable.
 
+print("Approximately 16% of variability is due to the explanatory variable.")
+```
 Test the hypothesis that Family Income and respondent Education are 
 associated at the 5% significance level.
 
@@ -390,13 +386,13 @@ oneway.test(Family_Income ~ Degree,
 pf(2340.8,4,10598,lower.tail=FALSE)
 ```
 #### Conclusion
-* If p-value is small (less than α), reject H0. 
-* The data provide convincing evidence that at least 
+  - If p-value is small (less than α), reject H0. 
+  - The data provide convincing evidence that at least 
 one pair of population means are different from each 
 other (but we can’t tell which one).
 
-* If p-value is large, fail to reject H0. 
-* The data do not provide convincing evidence that at 
+  - If p-value is large, fail to reject H0. 
+  - The data do not provide convincing evidence that at 
 least one pair of population means are different from 
 each other, the observed differences in sample means 
 are attributable to sampling variability (or chance).
@@ -412,7 +408,7 @@ Modified Significance level given 5 levels: 0.02
 SE for multiple pairwise comparisons: 382.773
 Degrees of Freedom for multiple pairwise comparisons: 10267
 
-1) Is there a difference between the average family income of Lt High School and 
+1. Is there a difference between the average family income of Lt High School and 
 High School respondents?
 
 ```{r}
@@ -425,7 +421,7 @@ if(lHS_HS < 0.02) {
 }
 ```
 
-2) Is there a difference between the average family income of Lt High School and 
+2. Is there a difference between the average family income of Lt High School and 
 Junior College respondents?
 
 ```{r}
@@ -438,7 +434,7 @@ if(lHS_JC < 0.02) {
 }
 ```
 
-3) Is there a difference between the average family income of Lt High School and 
+3. Is there a difference between the average family income of Lt High School and 
 Bachelor respondents?
 
 ```{r}
@@ -451,7 +447,7 @@ if(lHS_B < 0.02) {
 }
 ```
 
-4) Is there a difference between the average family income of Lt High School and 
+4. Is there a difference between the average family income of Lt High School and 
 Graduate respondents?
 
 ```{r}
@@ -464,7 +460,7 @@ if(lHS_G < 0.02) {
 }
 ```
 
-5) Is there a difference between the average family income of High School and 
+5. Is there a difference between the average family income of High School and 
 Junior College respondents?
 
 ```{r}
@@ -477,7 +473,7 @@ if(HS_JC < 0.02) {
 }
 ```
 
-6) Is there a difference between the average family income of High School
+6. Is there a difference between the average family income of High School
 and Bachelor respondents?
 
 ```{r}
@@ -490,7 +486,7 @@ if(HS_B < 0.02) {
 }
 ```
 
-7) Is there a difference between the average family income of High School
+7. Is there a difference between the average family income of High School
 and Graduate respondents?
 
 ```{r}
@@ -503,7 +499,7 @@ if(HS_G < 0.02) {
 }
 ```
 
-8) Is there a difference between the average family income of Junior College
+8. Is there a difference between the average family income of Junior College
 and Bachelor respondents?
 
 ```{r}
@@ -516,7 +512,7 @@ if(JC_B < 0.02) {
 }
 ```
 
-9) Is there a difference between the average family income of Junior College
+9. Is there a difference between the average family income of Junior College
 and Graduate respondents?
 
 ```{r}
@@ -529,7 +525,7 @@ if(JC_G < 0.02) {
 }
 ```
 
-10) Is there a difference between the average family income of Bachelor
+10. Is there a difference between the average family income of Bachelor
 and Graduate respondents?
 
 ```{r}
@@ -541,3 +537,246 @@ if(B_G < 0.02) {
   print("Fail to reject the null hypothesis")
 }
 ```
+
+#### Conclusion
+All pairs but Lt High School vs Graduate showed a significant difference.
+
+## Analysis #3 - Average # of Children
+
+How many children do respondents in this sample have on average?
+Estimate the true, average number of children based on this sample with a 95%
+confidence interval.
+
+* * *
+
+### Part 3: Exploratory data analysis
+
+```{r}
+##### Keep specific columns for analysis.
+trimmed_gss_analysis_three <- gss %>%
+  select(c(childs))
+
+##### Check for N/A's.
+sapply(trimmed_gss_analysis_three, function(x) sum(is.na(x)))
+
+##### Replace missing values with the mean of the column.
+#trimmed_gss_analysis_two$coninc[is.na(trimmed_gss_analysis_two$coninc)] <- #mean(trimmed_gss_analysis_two$coninc, na.rm=TRUE)
+
+#### Omit rows with NA's (acceptable due to the large amount of data collected.)
+trimmed_gss_analysis_three <- na.omit(trimmed_gss_analysis_three)
+
+##### Rename column headers.
+colnames(trimmed_gss_analysis_three) <- c("Children")
+               
+#### Export data for further analysis in Excel, if necessary.
+write.csv(trimmed_gss_analysis_three, "c_data.csv", row.names = TRUE)
+```
+
+#### Plots
+##### Boxplot and Barplot
+
+```{r}
+ggplot(trimmed_gss_analysis_three) +
+  geom_boxplot(fill = "lightblue", color = "darkblue", size = 1, outlier.color = "red", outlier.shape = 8) +
+  aes(y = Children)
+
+ggplot(trimmed_gss_analysis_three) +
+  geom_bar(fill = "lightblue", color = "darkblue", linewidth = 1) +
+  aes(y = Children)
+```
+#### Summary Statistics
+
+```{r}
+summary(trimmed_gss_analysis_three)
+```
+* * *
+
+### Part 4: Inference
+
+#### Conditions
+
+##### Independence
+1. Independence: Sampled observations must be independent. 
+2. random sample/assignment
+3. if sampling without replacement, n < 10% of population
+  - Random sample & 56,880 < 10% of the population at large.
+  - Independence cannot be guaranteed, as there is a chance multiple respondents
+from the same household were surveyed, or individuals who are no longer in the
+same household provide data on the same children.
+
+##### Approximately Normal
+1. Sample size/skew: n ≥ 30, larger if the population distribution is very skewed.
+  - Sample size/skew: 56,880 ≥ 30.
+  - There is slight skew in the data, however, the sample size is large.
+
+#### Calculate the Confidence Interval 
+
+```{r}
+#### Calculate Mean, Median and Standard Deviation.
+(trimmed_gss_analysis_three %>%
+  summarize(Mean=mean(Children), Median=median(Children),standard_deviation=sd(Children)))
+
+se = sd(trimmed_gss_analysis_three$Children/(sqrt(56880)))
+
+CI_low = mean(trimmed_gss_analysis_three$Children - 1.96*se)
+CI_high = mean(trimmed_gss_analysis_three$Children + 1.96*se)
+
+(CI <- c(CI_low,CI_high))
+```
+
+#### Conclusion
+
+We are 95% confident that adults, on average, have approximately 1.94 - 1.97
+children.
+
+#### Test the hypothesis
+
+A 95% confidence interval for the average number of children adults have was 
+(1.94, 1.97). Based on this confidence interval, do these data 
+support the hypothesis that adults on average have more than 1.95 children?
+(In this case, the sample mean.)
+
+H0: μ = 1.95: Adults have 1.95 children on average.
+HA: μ > 1.95: Adults have more than 1.95 children on average.
+
+p-value: P(observed or more extreme outcome | H0 true)
+P(X > 1.95 | H0: μ = 1.95)
+X ~ N(μ = 1.95, SE = 0.0075)
+
+  - N = 56880
+  - x_bar = 1.95
+  - SD = 1.79
+  - SE = 0.0075
+
+```{r}
+pnorm <- pnorm(((mean(trimmed_gss_analysis_three$Children - 1.95)/sd(trimmed_gss_analysis_three$Children/(sqrt(56880))))),lower.tail=FALSE)
+
+if(pnorm < 0.05) {
+  print("Reject the null hypothesis")
+  } else {
+    print("Fail to reject the null hypothesis")
+  }
+```
+#### Conclusion
+
+Since the p_value is high (greater than 0.05), we fail to reject the null hypothesis. 
+There is insufficient data indicating that adults have more than 1.95 children on average.
+
+## Analysis #4 - Average age of adults in the US
+
+### Part 3: Exploratory data analysis
+
+What is the average age of the US adult population?
+Estimate the true, average age of adults in the US, based on this sample with a 
+95% confidence interval.
+
+```{r}
+##### Keep specific columns for analysis.
+trimmed_gss_analysis_four <- gss %>%
+  select(c(age))
+
+##### Check for N/A's.
+sapply(trimmed_gss_analysis_four, function(x) sum(is.na(x)))
+
+##### Replace missing values with the mean of the column.
+#trimmed_gss_analysis_two$coninc[is.na(trimmed_gss_analysis_two$coninc)] <- #mean(trimmed_gss_analysis_two$coninc, na.rm=TRUE)
+
+#### Omit rows with NA's (acceptable due to the large amount of data collected.)
+trimmed_gss_analysis_four <- na.omit(trimmed_gss_analysis_four)
+
+##### Rename column headers.
+colnames(trimmed_gss_analysis_four) <- c("Age")
+               
+#### Export data for further analysis in Excel, if necessary.
+write.csv(trimmed_gss_analysis_four, "a_data.csv", row.names = TRUE)
+```
+
+#### Plots
+##### Boxplot and Barplot
+
+```{r}
+ggplot(trimmed_gss_analysis_four) +
+  geom_boxplot(fill = "lightblue", color = "darkblue", size = 1, outlier.color = "red", outlier.shape = 8) +
+  aes(y = Age)
+
+ggplot(trimmed_gss_analysis_four) +
+  geom_bar(fill = "lightblue", color = "darkblue", linewidth = 1) +
+  aes(y = Age)
+```
+
+#### Summary Statistics
+
+```{r}
+summary(trimmed_gss_analysis_four)
+```
+
+### Part 4: Inference
+
+#### Conditions
+
+##### Independence
+1. Independence: Sampled observations must be independent. 
+2. random sample/assignment
+3. if sampling without replacement, n < 10% of population
+  - Random sample & 56,859 < 10% of the adult population at large.
+  - One adult is surveyed per home. Being that this analysis is on the average
+  age of adults, even if, somehow, more than one adult from the same household
+  provided a response, it wouldn't drastically impact the integrity of the 
+  analysis.
+
+##### Approximately Normal
+1. Sample size/skew: n ≥ 30, larger if the population distribution is very skewed.
+  - Sample size/skew: 56,859 ≥ 30.
+  - There is slight skew in the data, however, the sample size is large.
+
+#### Calculate the Confidence Interval 
+
+```{r}
+#### Calculate Mean, Median and Standard Deviation.
+(trimmed_gss_analysis_four %>%
+  summarize(Mean=mean(Age), Median=median(Age),standard_deviation=sd(Age)))
+
+se = sd(trimmed_gss_analysis_four$Age/(sqrt(56859)))
+
+CI_low = mean(trimmed_gss_analysis_four$Age - 1.96*se)
+CI_high = mean(trimmed_gss_analysis_four$Age + 1.96*se)
+
+(CI <- c(CI_low, CI_high))
+```
+
+We are 95% confident that the average adult age in the US is between 45.55 and
+45.84 years.
+
+#### Test the hypothesis
+
+A 95% confidence interval for the average age of adults have was 
+(45.55434 45.84157). Based on this confidence interval, do these data 
+support the hypothesis that the average age of Adults in the US is greater than
+43 (the median)?
+
+  - H0: μ = 43: Average age of Adults in the US is 43.
+  - HA: μ > 43: Average age of Adults in the US is greater than 43.
+
+p-value: P(observed or more extreme outcome | H0 true)
+P(X > 45.7 | H0: μ = 43)
+X ~ N(μ = 43, SE = 0.0075)
+
+  - N = 56859
+  - x_bar = 45.7
+  - SD = 17.47211
+  - SE = 0.07327331
+  
+```{r}
+pnorm <- pnorm(((mean(trimmed_gss_analysis_four$Age - 43)/sd(trimmed_gss_analysis_four$Age/(sqrt(56859))))),lower.tail=FALSE)
+
+if(pnorm < 0.05) {
+  print("Reject the null hypothesis")
+  } else {
+    print("Fail to reject the null hypothesis")
+  }
+```
+#### Conclusion
+
+Since the p_value is high (greater than 0.05), we reject the null hypothesis.
+There is sufficient data indicating that the average age of Adults in the Us
+is greater than 43.
