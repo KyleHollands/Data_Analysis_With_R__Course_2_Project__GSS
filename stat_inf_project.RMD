@@ -134,7 +134,7 @@ colnames(trimmed_gss_analysis_one) <- c("Religiosity","Political Party")
                                    trimmed_gss_analysis_one$'Political Party')))
 
 ##### Export contingency table and trimmed data for external Chi-Sq Test of Independence in Excel.
-write.csv(partyid_relig_n, "party_religion.csv", row.names = TRUE)
+#write.csv(partyid_relig_n, "party_religion.csv", row.names = TRUE)
 ```
 
 #### Plots
@@ -142,8 +142,7 @@ write.csv(partyid_relig_n, "party_religion.csv", row.names = TRUE)
 The following plot shows the the association between Political Party affiliation
 and religiosity. The data indicate that Democrats, Independents and Other see a
 higher proportion of Non-Religious members, in contrast to Republicans which see
-the opposite. Based on this, we can determine that political party and religiosity
-are dependent on one another.
+the opposite.
 
 The standardized residuals indicate the difference between the observed and
 expected values.
@@ -281,13 +280,13 @@ colnames(trimmed_gss_analysis_two) <- c("Family_Income","Degree")
 # )
                
 #### Export data for further analysis in Excel and additional formatting.
-write.csv(trimmed_gss_analysis_two, "GSS_FamIncome_Degree_ANOVA.csv", row.names = TRUE)
+#write.csv(trimmed_gss_analysis_two, "GSS_FamIncome_Degree_ANOVA.csv", row.names = TRUE)
 ```
 
 #### Plots
 ##### Jitter Plot
 
-The graph indicates a clear difference between various levels of respondent education
+The graph indicates clear differences between various levels of respondent education
 and associated family earnings. The largest appears to be between Limited High School
 and High School; however, there are apparent differences among many of the
 degrees of education.
@@ -386,13 +385,13 @@ oneway.test(Family_Income ~ Degree,
 pf(2340.8,4,10598,lower.tail=FALSE)
 ```
 #### Conclusion
-  - If p-value is small (less than α), reject H0. 
-  - The data provide convincing evidence that at least 
+1. If p-value is small (less than α), reject H0. 
+2. The data provide convincing evidence that at least 
 one pair of population means are different from each 
 other (but we can’t tell which one).
 
-  - If p-value is large, fail to reject H0. 
-  - The data do not provide convincing evidence that at 
+1. If p-value is large, fail to reject H0. 
+2. The data do not provide convincing evidence that at 
 least one pair of population means are different from 
 each other, the observed differences in sample means 
 are attributable to sampling variability (or chance).
@@ -569,11 +568,17 @@ trimmed_gss_analysis_three <- na.omit(trimmed_gss_analysis_three)
 colnames(trimmed_gss_analysis_three) <- c("Children")
                
 #### Export data for further analysis in Excel, if necessary.
-write.csv(trimmed_gss_analysis_three, "c_data.csv", row.names = TRUE)
+#write.csv(trimmed_gss_analysis_three, "c_data.csv", row.names = TRUE)
 ```
 
 #### Plots
 ##### Boxplot and Barplot
+
+The Boxplot and Barplot indicate there is some skew in the data; however, the
+sample is quite large, and therefore should not have a significant impact
+on this analysis.
+Additionally, there appears to be an outlier in the data, possible due to an 
+entry error; further investigation into this is required.
 
 ```{r}
 ggplot(trimmed_gss_analysis_three) +
@@ -688,11 +693,15 @@ trimmed_gss_analysis_four <- na.omit(trimmed_gss_analysis_four)
 colnames(trimmed_gss_analysis_four) <- c("Age")
                
 #### Export data for further analysis in Excel, if necessary.
-write.csv(trimmed_gss_analysis_four, "a_data.csv", row.names = TRUE)
+#write.csv(trimmed_gss_analysis_four, "a_data.csv", row.names = TRUE)
 ```
 
 #### Plots
 ##### Boxplot and Barplot
+
+The Boxplot and Barplot below indicate there is some skew in the data, but it
+isn't too significant. The Barplot displays some potential outliers, which could
+be further investigated.
 
 ```{r}
 ggplot(trimmed_gss_analysis_four) +
@@ -720,9 +729,9 @@ summary(trimmed_gss_analysis_four)
 3. if sampling without replacement, n < 10% of population
   - Random sample & 56,859 < 10% of the adult population at large.
   - One adult is surveyed per home. Being that this analysis is on the average
-  age of adults, even if, somehow, more than one adult from the same household
-  provided a response, it wouldn't drastically impact the integrity of the 
-  analysis.
+age of adults, even if, somehow, more than one adult from the same household
+provided a response, it wouldn't drastically impact the integrity of the 
+analysis.
 
 ##### Approximately Normal
 1. Sample size/skew: n ≥ 30, larger if the population distribution is very skewed.
