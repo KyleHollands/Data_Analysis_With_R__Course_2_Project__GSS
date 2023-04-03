@@ -63,7 +63,9 @@ Due to this, it's safe to assume that the data collected is representative of th
 4. Is level of education (degree) and family income (coninc) associated? ***
 5. News and overall happiness.
 6. What is the average # of Children adults have.
-7. What is the average age of adults in the US?
+7. Are adults (18+) in the US having less children? (Requires time-series Linear
+Regression.)
+8. What is the average age of adults in the US?
 
 ```{r}
 #### Investigate the dataset
@@ -80,14 +82,11 @@ Due to this, it's safe to assume that the data collected is representative of th
 * * *
 
 ## Analysis #1 - Religion and Party Affiliation (Chi-Square Test of Independence)
-
 ### Part 3: Exploratory data analysis
 
 Does there appear to be a relationship between religiosity and political party 
-affiliation?
-
-The parties contained in this analysis are Democrat, Independent, Republican
-and Other.
+affiliation? The parties contained in this analysis are Democrat, Independent, 
+Republican and Other.
 
 For the purposes of this analysis, anyone affiliated with a religion is considered
 religious. Those that are nearly or strongly leaning toward a particular political
@@ -130,8 +129,8 @@ trimmed_gss_analysis_one <- trimmed_gss_analysis_one %>% mutate(
 colnames(trimmed_gss_analysis_one) <- c("Religiosity","Political Party")
 
 ##### Create contingency table
-(partyid_relig_n <- (table(trimmed_gss_analysis_one$Religiosity,
-                                   trimmed_gss_analysis_one$'Political Party')))
+partyid_relig_n <- (table(trimmed_gss_analysis_one$Religiosity,
+                                   trimmed_gss_analysis_one$'Political Party'))
 
 ##### Export contingency table and trimmed data for external Chi-Sq Test of Independence in Excel.
 #write.csv(partyid_relig_n, "party_religion.csv", row.names = TRUE)
@@ -142,7 +141,9 @@ colnames(trimmed_gss_analysis_one) <- c("Religiosity","Political Party")
 The following plot shows the the association between Political Party affiliation
 and religiosity. The data indicate that Democrats, Independents and Other see a
 higher proportion of Non-Religious members, in contrast to Republicans which see
-the opposite.
+the opposite. With an even larger sample size, it would be expected to see
+similar results; Republicans have a higher proportion of religiously affiliated
+members than Democrats, Other and None.
 
 The standardized residuals indicate the difference between the observed and
 expected values.
@@ -152,8 +153,8 @@ mosaicplot(partyid_relig_n, main='Religiosity by Political Party',
            xlab = "Religiosity", 
            ylab="Political Party Affiliation", 
            shade = TRUE,
-           off = 4,
-           cex.axis = 0.45,
+           off = 2,
+           cex.axis = 0.40,
            margin = 1)
 ```
 
@@ -164,25 +165,23 @@ of religious and non-religious individuals affiliated with a particular
 political party and those that are not
 
 ```{r}
-(partyid_relig_counts <- (addmargins(table(trimmed_gss_analysis_one$Religiosity,
-                                   trimmed_gss_analysis_one$'Political Party'))))
+partyid_relig_counts <- (addmargins(table(trimmed_gss_analysis_one$Religiosity,
+                                   trimmed_gss_analysis_one$'Political Party')))
 
-(partyid_relig_prop <- (prop.table(addmargins(table(trimmed_gss_analysis_one$Religiosity,
-                                   trimmed_gss_analysis_one$'Political Party')))))
+partyid_relig_prop <- (prop.table(addmargins(table(trimmed_gss_analysis_one$Religiosity,
+                                   trimmed_gss_analysis_one$'Political Party'))))
 ```
 
 * * *
 
 ### Part 4: Inference
-
 #### Hypotheses
 Does there appear to be a relationship between religiosity and political party 
 affiliation?
 
-H0 (nothing is going on) Religion and Party affiliation are independent.
+  - H0 (nothing is going on) Religion and Party affiliation are independent.
 Religiosity does not vary by Political Party.
-
-HA (something is going on) Religion and party affiliation are dependent.
+  - HA (something is going on) Religion and party affiliation are dependent.
 Religiosity does vary by Political Party.
 
 #### Evaluating the Hypothesis
@@ -191,7 +190,6 @@ Religiosity does vary by Political Party.
 (chance) alone provide strong evidence for the alternative hypothesis.
 
 #### Conditions for the Chi-Square Test of Independence
-
 ##### Independence:
 1. Sampled observations are independent.
   - Random sampling was employed for the survey.
@@ -217,11 +215,11 @@ What is the overall religiosity in the sample?
 Test the hypothesis that religiosity and political party affiliation are 
 associated at the 5% significance level.
 
-  - x^2 =	970.29
-  - df = 3
-
 ```{r}
-(chiSq <- pchisq(970.29, 3, lower.tail = FALSE))
+print("x^2 = 970.29")
+print("df = 3")
+
+chiSq <- pchisq(970.29, 3, lower.tail = FALSE)
 
 if(chiSq < 0.05) {
   print("Reject the null hypothesis")
@@ -231,7 +229,6 @@ if(chiSq < 0.05) {
 ```
 
 #### Conclusion
-
 The p_value of 5.012349e-210 is less than the 0.05 significance level. Therefore,
 we reject the null hypothesis in favour of the alternative; there is sufficient
 evidence indicating there is an association between Political Party affiliation and
@@ -240,7 +237,6 @@ Religiosity.
 * * *
 
 ## Analysis #2 - Level of respondents education and household income (ANOVA and pairwise tests (theoretical only))
-
 ### Part 3: Exploratory data analysis
 
 Does there appear to be a relationship between the level of respondents education
@@ -294,14 +290,13 @@ degrees of education.
 ```{r}
 ggplot(trimmed_gss_analysis_two) +
   aes(x = Degree, y = Family_Income, color = Degree) +
-  geom_jitter() +
+  geom_jitter(width = 0.40, size = 0.35) +
   theme(legend.position = "none")
 ```
 
 * * *
 
 ### Part 4: Inference
-
 #### Hypotheses
 Does there appear to be a relationship between the level of respondents education
 and their household income?
@@ -310,7 +305,6 @@ and their household income?
   - HA: The average family income differs between at least one pair of degrees of education.
 
 #### Evaluating the Hypothesis
-
 ##### Conditions for the ANOVA Test
 
 ```{r}
@@ -346,7 +340,6 @@ hist(res_aov$residuals)
 ```
 
 ###### Constant Variance
-
 1. Variability should be consistent across groups: homoscedastic groups
 2. Especially important when sample sizes differ between groups
   - Variance does not appear to be constant among all groups, therefore an 
@@ -363,7 +356,6 @@ qqPlot(res_aov$residuals,
 ```
 
 #### Test the hypothesis - ANOVA
-
 How much variability is attributed to the explanatory variable? (Education)
 
 ```{r}
@@ -385,27 +377,24 @@ oneway.test(Family_Income ~ Degree,
 pf(2340.8,4,10598,lower.tail=FALSE)
 ```
 #### Conclusion
-1. If p-value is small (less than α), reject H0. 
-2. The data provide convincing evidence that at least 
-one pair of population means are different from each 
+1. If p-value is small (less than α), reject H0. The data provide convincing 
+evidence that at least one pair of population means are different from each 
 other (but we can’t tell which one).
 
-1. If p-value is large, fail to reject H0. 
-2. The data do not provide convincing evidence that at 
-least one pair of population means are different from 
+2. If p-value is large, fail to reject H0. The data do not provide convincing 
+evidence that at least one pair of population means are different from 
 each other, the observed differences in sample means 
 are attributable to sampling variability (or chance).
 
-The p_value of 0 is less than the 0.05 significance level. Therefore,
+  - The p_value of 0 is less than the 0.05 significance level. Therefore,
 we reject the null hypothesis in favour of the alternative; there is sufficient
 evidence indicating that at least one pair of population means are different 
 from one another, however, we do not know which.
 
 #### Test the hypothesis - Pairwise Testing
-
-Modified Significance level given 5 levels: 0.02
-SE for multiple pairwise comparisons: 382.773
-Degrees of Freedom for multiple pairwise comparisons: 10267
+  - Modified Significance level given 5 levels: 0.02
+  - SE for multiple pairwise comparisons: 382.773
+  - Degrees of Freedom for multiple pairwise comparisons: 10267
 
 1. Is there a difference between the average family income of Lt High School and 
 High School respondents?
@@ -538,10 +527,12 @@ if(B_G < 0.02) {
 ```
 
 #### Conclusion
-All pairs but Lt High School vs Graduate showed a significant difference.
+All pairs but Lt High School vs Graduate showed a significant difference. It's
+apparent that there is a certain degree of difference between family income
+and level of respondent (Adult) education and therefore a connection between
+the explanatory and response variables.
 
 ## Analysis #3 - Average # of Children
-
 How many children do respondents in this sample have on average?
 Estimate the true, average number of children based on this sample with a 95%
 confidence interval.
@@ -573,37 +564,32 @@ colnames(trimmed_gss_analysis_three) <- c("Children")
 
 #### Plots
 ##### Boxplot and Barplot
-
 The Boxplot and Barplot indicate there is some skew in the data; however, the
 sample is quite large, and therefore should not have a significant impact
-on this analysis.
-Additionally, there appears to be an outlier in the data, possible due to an 
-entry error; further investigation into this is required.
+on this analysis.Additionally, there appears to be an outlier in the data, 
+possibly due to an entry error; further investigation into this is required.
 
 ```{r}
 ggplot(trimmed_gss_analysis_three) +
   geom_boxplot(fill = "lightblue", color = "darkblue", size = 1, outlier.color = "red", outlier.shape = 8) +
-  aes(y = Children)
+  aes(x = Children)
 
 ggplot(trimmed_gss_analysis_three) +
   geom_bar(fill = "lightblue", color = "darkblue", linewidth = 1) +
-  aes(y = Children)
+  aes(x = Children)
 ```
 #### Summary Statistics
-
 ```{r}
 summary(trimmed_gss_analysis_three)
 ```
 * * *
 
 ### Part 4: Inference
-
 #### Conditions
-
 ##### Independence
 1. Independence: Sampled observations must be independent. 
-2. random sample/assignment
-3. if sampling without replacement, n < 10% of population
+2. Random sample/assignment
+3. If sampling without replacement, n < 10% of population
   - Random sample & 56,880 < 10% of the population at large.
   - Independence cannot be guaranteed, as there is a chance multiple respondents
 from the same household were surveyed, or individuals who are no longer in the
@@ -618,35 +604,33 @@ same household provide data on the same children.
 
 ```{r}
 #### Calculate Mean, Median and Standard Deviation.
-(trimmed_gss_analysis_three %>%
-  summarize(Mean=mean(Children), Median=median(Children),standard_deviation=sd(Children)))
+trimmed_gss_analysis_three %>%
+  summarize(Mean=mean(Children), Median=median(Children),standard_deviation=sd(Children))
 
 se = sd(trimmed_gss_analysis_three$Children/(sqrt(56880)))
 
 CI_low = mean(trimmed_gss_analysis_three$Children - 1.96*se)
 CI_high = mean(trimmed_gss_analysis_three$Children + 1.96*se)
 
-(CI <- c(CI_low,CI_high))
+CI <- c(CI_low,CI_high)
 ```
 
 #### Conclusion
-
 We are 95% confident that adults, on average, have approximately 1.94 - 1.97
 children.
 
 #### Test the hypothesis
-
 A 95% confidence interval for the average number of children adults have was 
 (1.94, 1.97). Based on this confidence interval, do these data 
 support the hypothesis that adults on average have more than 1.95 children?
 (In this case, the sample mean.)
 
-H0: μ = 1.95: Adults have 1.95 children on average.
-HA: μ > 1.95: Adults have more than 1.95 children on average.
+  - H0: μ = 1.95: Adults have 1.95 children on average.
+  - HA: μ > 1.95: Adults have more than 1.95 children on average.
 
-p-value: P(observed or more extreme outcome | H0 true)
-P(X > 1.95 | H0: μ = 1.95)
-X ~ N(μ = 1.95, SE = 0.0075)
+  - p-value: P(observed or more extreme outcome | H0 true)
+  - P(X > 1.95 | H0: μ = 1.95)
+  - X ~ N(μ = 1.95, SE = 0.0075)
 
   - N = 56880
   - x_bar = 1.95
@@ -663,14 +647,11 @@ if(pnorm < 0.05) {
   }
 ```
 #### Conclusion
-
 Since the p_value is high (greater than 0.05), we fail to reject the null hypothesis. 
 There is insufficient data indicating that adults have more than 1.95 children on average.
 
 ## Analysis #4 - Average age of adults in the US
-
 ### Part 3: Exploratory data analysis
-
 What is the average age of the US adult population?
 Estimate the true, average age of adults in the US, based on this sample with a 
 95% confidence interval.
@@ -698,31 +679,27 @@ colnames(trimmed_gss_analysis_four) <- c("Age")
 
 #### Plots
 ##### Boxplot and Barplot
-
 The Boxplot and Barplot below indicate there is some skew in the data, but it
 isn't too significant. The Barplot displays some potential outliers, which could
 be further investigated.
 
 ```{r}
 ggplot(trimmed_gss_analysis_four) +
-  geom_boxplot(fill = "lightblue", color = "darkblue", size = 1, outlier.color = "red", outlier.shape = 8) +
-  aes(y = Age)
+  geom_boxplot(fill = "lightblue", color = "darkblue", size = 0.5, outlier.color = "red", outlier.shape = 8) +
+  aes(x = Age)
 
 ggplot(trimmed_gss_analysis_four) +
-  geom_bar(fill = "lightblue", color = "darkblue", linewidth = 1) +
-  aes(y = Age)
+  geom_bar(fill = "lightblue", color = "darkblue", linewidth = 0.75) +
+  aes(x = Age)
 ```
 
 #### Summary Statistics
-
 ```{r}
 summary(trimmed_gss_analysis_four)
 ```
 
 ### Part 4: Inference
-
 #### Conditions
-
 ##### Independence
 1. Independence: Sampled observations must be independent. 
 2. random sample/assignment
@@ -742,22 +719,21 @@ analysis.
 
 ```{r}
 #### Calculate Mean, Median and Standard Deviation.
-(trimmed_gss_analysis_four %>%
-  summarize(Mean=mean(Age), Median=median(Age),standard_deviation=sd(Age)))
+trimmed_gss_analysis_four %>%
+  summarize(Mean=mean(Age), Median=median(Age),standard_deviation=sd(Age))
 
 se = sd(trimmed_gss_analysis_four$Age/(sqrt(56859)))
 
 CI_low = mean(trimmed_gss_analysis_four$Age - 1.96*se)
 CI_high = mean(trimmed_gss_analysis_four$Age + 1.96*se)
 
-(CI <- c(CI_low, CI_high))
+CI <- c(CI_low, CI_high)
 ```
 
 We are 95% confident that the average adult age in the US is between 45.55 and
 45.84 years.
 
 #### Test the hypothesis
-
 A 95% confidence interval for the average age of adults have was 
 (45.55434 45.84157). Based on this confidence interval, do these data 
 support the hypothesis that the average age of Adults in the US is greater than
@@ -766,9 +742,9 @@ support the hypothesis that the average age of Adults in the US is greater than
   - H0: μ = 43: Average age of Adults in the US is 43.
   - HA: μ > 43: Average age of Adults in the US is greater than 43.
 
-p-value: P(observed or more extreme outcome | H0 true)
-P(X > 45.7 | H0: μ = 43)
-X ~ N(μ = 43, SE = 0.0075)
+  - p-value: P(observed or more extreme outcome | H0 true)
+  - P(X > 45.7 | H0: μ = 43)
+  - X ~ N(μ = 43, SE = 0.0075)
 
   - N = 56859
   - x_bar = 45.7
